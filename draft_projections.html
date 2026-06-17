@@ -1217,6 +1217,29 @@
             { key: "collegeFta2pa", label: "C FTA/2FGA", type: "number", format: pct },
             { key: "teamSos", label: "Team SOS", type: "number", format: oneDecimal },
             { key: "dunkPct", label: "Dunk %", type: "number", format: pct },
+            { key: "shotCoverage", label: "Total shot cov", type: "number", format: pct },
+            { key: "shotDistanceCoverage", label: "Dist cov", type: "number", format: pct },
+            { key: "shotClassifiedCoverage", label: "Zone cov", type: "number", format: pct },
+            { key: "assistedAll", label: "Ast'd all", type: "number", format: pct },
+            { key: "assisted2pt", label: "Ast'd 2PT", type: "number", format: pct },
+            { key: "assistedRim", label: "Ast'd rim", type: "number", format: pct },
+            { key: "assistedNonDunkRim", label: "Ast'd non-dunk rim", type: "number", format: pct },
+            { key: "assistedNonRim2", label: "Ast'd non-rim 2", type: "number", format: pct },
+            { key: "assisted3pt", label: "Ast'd 3PT", type: "number", format: pct },
+            { key: "rimRate", label: "Rim dist", type: "number", format: pct },
+            { key: "rimFg", label: "Rim FG%", type: "number", format: pct },
+            { key: "nonDunkRimFg", label: "Non-dunk rim FG%", type: "number", format: pct },
+            { key: "short2Rate", label: "Short2 dist", type: "number", format: pct },
+            { key: "short2Fg", label: "Short2 FG%", type: "number", format: pct },
+            { key: "mid2Rate", label: "Mid2 dist", type: "number", format: pct },
+            { key: "mid2Fg", label: "Mid2 FG%", type: "number", format: pct },
+            { key: "long2Rate", label: "Long2 dist", type: "number", format: pct },
+            { key: "long2Fg", label: "Long2 FG%", type: "number", format: pct },
+            { key: "short3Rate", label: "Short3 dist", type: "number", format: pct },
+            { key: "short3Fg", label: "Short3 FG%", type: "number", format: pct },
+            { key: "long3Rate", label: "Long3 dist", type: "number", format: pct },
+            { key: "long3Fg", label: "Long3 FG%", type: "number", format: pct },
+            { key: "shotQuality", label: "Shot quality", type: "text" },
             { key: "binaryOut", label: "OUT%", type: "number", format: pct },
             { key: "starter", label: "Starter%", type: "number", format: pct },
             { key: "starPlus", label: "STAR+%", type: "number", format: pct },
@@ -1241,29 +1264,6 @@
             { key: "peakTs", label: "Peak TS%", type: "number", format: pct },
             { key: "peak3p", label: "Peak 3P%", type: "number", format: pct },
             { key: "peakPie", label: "Peak PIE", type: "number", format: pct },
-            { key: "shotCoverage", label: "Total shot cov", type: "number", format: pct },
-            { key: "shotDistanceCoverage", label: "Dist cov", type: "number", format: pct },
-            { key: "shotClassifiedCoverage", label: "Zone cov", type: "number", format: pct },
-            { key: "assistedAll", label: "Ast'd all", type: "number", format: pct },
-            { key: "assisted2pt", label: "Ast'd 2PT", type: "number", format: pct },
-            { key: "assistedRim", label: "Ast'd rim", type: "number", format: pct },
-            { key: "assistedNonDunkRim", label: "Ast'd non-dunk rim", type: "number", format: pct },
-            { key: "assistedNonRim2", label: "Ast'd non-rim 2", type: "number", format: pct },
-            { key: "assisted3pt", label: "Ast'd 3PT", type: "number", format: pct },
-            { key: "rimRate", label: "Rim dist", type: "number", format: pct },
-            { key: "rimFg", label: "Rim FG%", type: "number", format: pct },
-            { key: "nonDunkRimFg", label: "Non-dunk rim FG%", type: "number", format: pct },
-            { key: "short2Rate", label: "Short2 dist", type: "number", format: pct },
-            { key: "short2Fg", label: "Short2 FG%", type: "number", format: pct },
-            { key: "mid2Rate", label: "Mid2 dist", type: "number", format: pct },
-            { key: "mid2Fg", label: "Mid2 FG%", type: "number", format: pct },
-            { key: "long2Rate", label: "Long2 dist", type: "number", format: pct },
-            { key: "long2Fg", label: "Long2 FG%", type: "number", format: pct },
-            { key: "short3Rate", label: "Short3 dist", type: "number", format: pct },
-            { key: "short3Fg", label: "Short3 FG%", type: "number", format: pct },
-            { key: "long3Rate", label: "Long3 dist", type: "number", format: pct },
-            { key: "long3Fg", label: "Long3 FG%", type: "number", format: pct },
-            { key: "shotQuality", label: "Shot quality", type: "text" },
             { key: "bpmDelta", label: "BPM Δ", type: "number", format: signedOneDecimal },
             { key: "astDelta", label: "AST Δ", type: "number", format: signedOneDecimal },
             { key: "tsDelta", label: "TS Δ", type: "number", format: signedOneDecimal },
@@ -1271,10 +1271,10 @@
         const statsFilterGroups = [
             ["Core", ["draftYear", "pick", "predictedDraftSlot", "player", "college", "actual", "predicted", "archetype", "position", "classYear", "season", "games", "age", "height", "weight", "wingspan", "standingReach"]],
             ["College", ["collegeMpg", "collegePpg", "collegeRpg", "collegeApg", "collegeSpg", "collegeBpg", "collegeUsg", "collegeAst", "collegeTov", "collegeStl", "collegeBlk", "collegeOrb", "collegeTs", "collegeObpm", "collegeDbpm", "collegeBpm", "college3pa", "college2fg", "collegeFt", "collegeFta2pa", "teamSos", "dunkPct"]],
+            ["Shot Profile", ["shotCoverage", "shotDistanceCoverage", "shotClassifiedCoverage", "assistedAll", "assisted2pt", "assistedRim", "assistedNonDunkRim", "assistedNonRim2", "assisted3pt", "rimRate", "rimFg", "nonDunkRimFg", "short2Rate", "short2Fg", "mid2Rate", "mid2Fg", "long2Rate", "long2Fg", "short3Rate", "short3Fg", "long3Rate", "long3Fg", "shotQuality"]],
             ["Model", ["binaryOut", "starter", "starPlus", "superstar"]],
             ["Projected NBA", ["predMpg", "predPpg", "predUsg", "predAst", "predTov", "predReb", "predOrb", "predStl", "predBlk", "predTs", "pred3pa", "pred3p", "predPie"]],
             ["Peak NBA", ["peakMpg", "peakPpg", "peakUsg", "peakAst", "peakTs", "peak3p", "peakPie"]],
-            ["Shot Profile", ["shotCoverage", "shotDistanceCoverage", "shotClassifiedCoverage", "assistedAll", "assisted2pt", "assistedRim", "assistedNonDunkRim", "assistedNonRim2", "assisted3pt", "rimRate", "rimFg", "nonDunkRimFg", "short2Rate", "short2Fg", "mid2Rate", "mid2Fg", "long2Rate", "long2Fg", "short3Rate", "short3Fg", "long3Rate", "long3Fg", "shotQuality"]],
             ["Deviations", ["bpmDelta", "astDelta", "tsDelta"]],
         ];
         const statsColumnByKey = new Map(statsColumns.map(column => [column.key, column]));
@@ -1663,6 +1663,8 @@
         function playerKey(row) {
             const playerId = row.player_id ?? row.playerId ?? "";
             const draftYear = row.draft_year ?? row.draftYear ?? row.year ?? "";
+            if (playerId === "" || playerId === undefined || playerId === null) return "";
+            if (draftYear === "" || draftYear === undefined || draftYear === null) return "";
             return `${playerId}|${Number(draftYear) || draftYear}`;
         }
 
@@ -2562,10 +2564,7 @@
                 pick: firstNumeric(row, ["pick_number", "pick"]),
                 predictedDraftSlot: binary.predictedDraftSlot,
                 player: row.player_name || row.player || "",
-                college: firstTextAcross(
-                    [shot, deviation, model, advanced, binaryRow],
-                    ["college_team", "college_year_team", "college"],
-                ),
+                college: statsCollegeValue(shot, deviation, model, advanced, binaryRow),
                 actual: actual === "TBD" ? normalizeCategory(labels.actual || "TBD") : actual,
                 predicted: labels.predicted || canonicalPredictedCategory(
                     binary,
@@ -2703,6 +2702,21 @@
                 astDelta: firstNumeric(deviation, ["ast_pct_deviation"]),
                 tsDelta: firstNumeric(deviation, ["ts_pct_deviation"]),
             };
+        }
+
+        function statsCollegeValue(shot, deviation, model, advanced, binaryRow) {
+            const hasShotSeasonFlag = Object.prototype.hasOwnProperty.call(shot, "is_final_college_season");
+            if (hasShotSeasonFlag && !isTrue(shot.is_final_college_season)) {
+                const seasonTeam = firstTextAcross(
+                    [shot, deviation],
+                    ["college_year_team", "college_team"],
+                );
+                if (seasonTeam) return seasonTeam;
+            }
+            return firstTextAcross(
+                [model, advanced, binaryRow, shot, deviation],
+                ["college", "college_year_team", "college_team"],
+            );
         }
 
         function firstNonEmptyObject(...objects) {
