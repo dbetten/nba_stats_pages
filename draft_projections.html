@@ -2558,6 +2558,7 @@
                 : firstNumeric(advanced, ["pred_peak_fg3_pct"]);
             const actual = normalizeCategory(model.actual_tier_label || actualCategoryFromRow(model));
             const hasShotSeasonFlag = Object.prototype.hasOwnProperty.call(shot, "is_final_college_season");
+            const hasShotDistanceDetail = isTrue(shot.has_distance_detail_shot_profile);
             return {
                 playerId: row.player_id ?? row.playerId,
                 draftYear: Number(row.draft_year ?? row.draftYear),
@@ -2673,30 +2674,34 @@
                 shotClassifiedCoverage: firstNumeric(shot, ["classified_vs_accounted_fga"]),
                 assistedAll: assistedShare(creationRowForShotRow(shot), null),
                 assisted2pt: assistedFamilyShare(creationRowForShotRow(shot), ["rim", "mid2"]),
-                assistedRim: assistedShare(creationRowForShotRow(shot), "rim"),
-                assistedNonDunkRim: estimateNonDunkRimAssistedShare(
-                    creationRowForShotRow(shot),
-                    firstNumeric(shot, ["rim_imputed_fga"]),
-                    binary.dunkPct,
-                ),
-                assistedNonRim2: assistedShare(creationRowForShotRow(shot), "mid2"),
+                assistedRim: hasShotDistanceDetail ? assistedShare(creationRowForShotRow(shot), "rim") : NaN,
+                assistedNonDunkRim: hasShotDistanceDetail
+                    ? estimateNonDunkRimAssistedShare(
+                        creationRowForShotRow(shot),
+                        firstNumeric(shot, ["rim_imputed_fga"]),
+                        binary.dunkPct,
+                    )
+                    : NaN,
+                assistedNonRim2: hasShotDistanceDetail ? assistedShare(creationRowForShotRow(shot), "mid2") : NaN,
                 assisted3pt: assistedShare(creationRowForShotRow(shot), "three"),
-                rimRate: firstNumeric(shot, ["rim_box_anchored_rate"]),
-                rimFg: firstNumeric(shot, ["rim_imputed_fg_pct"]),
-                nonDunkRimFg: estimateNonDunkRimFg(
-                    firstNumeric(shot, ["rim_imputed_fg_pct"]),
-                    binary.dunkPct,
-                ),
-                short2Rate: firstNumeric(shot, ["short2_box_anchored_rate"]),
-                short2Fg: firstNumeric(shot, ["short2_imputed_fg_pct"]),
-                mid2Rate: firstNumeric(shot, ["medium2_box_anchored_rate"]),
-                mid2Fg: firstNumeric(shot, ["medium2_imputed_fg_pct"]),
-                long2Rate: firstNumeric(shot, ["long2_box_anchored_rate"]),
-                long2Fg: firstNumeric(shot, ["long2_imputed_fg_pct"]),
-                short3Rate: firstNumeric(shot, ["short3_box_anchored_rate"]),
-                short3Fg: firstNumeric(shot, ["short3_imputed_fg_pct"]),
-                long3Rate: firstNumeric(shot, ["long3_box_anchored_rate"]),
-                long3Fg: firstNumeric(shot, ["long3_imputed_fg_pct"]),
+                rimRate: hasShotDistanceDetail ? firstNumeric(shot, ["rim_box_anchored_rate"]) : NaN,
+                rimFg: hasShotDistanceDetail ? firstNumeric(shot, ["rim_imputed_fg_pct"]) : NaN,
+                nonDunkRimFg: hasShotDistanceDetail
+                    ? estimateNonDunkRimFg(
+                        firstNumeric(shot, ["rim_imputed_fg_pct"]),
+                        binary.dunkPct,
+                    )
+                    : NaN,
+                short2Rate: hasShotDistanceDetail ? firstNumeric(shot, ["short2_box_anchored_rate"]) : NaN,
+                short2Fg: hasShotDistanceDetail ? firstNumeric(shot, ["short2_imputed_fg_pct"]) : NaN,
+                mid2Rate: hasShotDistanceDetail ? firstNumeric(shot, ["medium2_box_anchored_rate"]) : NaN,
+                mid2Fg: hasShotDistanceDetail ? firstNumeric(shot, ["medium2_imputed_fg_pct"]) : NaN,
+                long2Rate: hasShotDistanceDetail ? firstNumeric(shot, ["long2_box_anchored_rate"]) : NaN,
+                long2Fg: hasShotDistanceDetail ? firstNumeric(shot, ["long2_imputed_fg_pct"]) : NaN,
+                short3Rate: hasShotDistanceDetail ? firstNumeric(shot, ["short3_box_anchored_rate"]) : NaN,
+                short3Fg: hasShotDistanceDetail ? firstNumeric(shot, ["short3_imputed_fg_pct"]) : NaN,
+                long3Rate: hasShotDistanceDetail ? firstNumeric(shot, ["long3_box_anchored_rate"]) : NaN,
+                long3Fg: hasShotDistanceDetail ? firstNumeric(shot, ["long3_imputed_fg_pct"]) : NaN,
                 shotQuality: shot.shot_profile_quality || "",
                 bpmDelta: firstNumeric(deviation, ["bpm_deviation"]),
                 astDelta: firstNumeric(deviation, ["ast_pct_deviation"]),
@@ -3330,15 +3335,20 @@
             const peerInfo = shotPeerInfo(row);
             const creationRow = creationRowForShotRow(row);
             const binary = binaryScoresForRow(row);
-            const nonDunkRimFg = estimateNonDunkRimFg(
-                row.rim_imputed_fg_pct,
-                binary.dunkPct,
-            );
-            const nonDunkRimAssisted = estimateNonDunkRimAssistedShare(
-                creationRow,
-                row.rim_imputed_fga,
-                binary.dunkPct,
-            );
+            const hasDistanceDetail = isTrue(row.has_distance_detail_shot_profile);
+            const nonDunkRimFg = hasDistanceDetail
+                ? estimateNonDunkRimFg(
+                    row.rim_imputed_fg_pct,
+                    binary.dunkPct,
+                )
+                : NaN;
+            const nonDunkRimAssisted = hasDistanceDetail
+                ? estimateNonDunkRimAssistedShare(
+                    creationRow,
+                    row.rim_imputed_fga,
+                    binary.dunkPct,
+                )
+                : NaN;
             const summaryStats = [
                 ["Quality", valueOrDash(row.shot_profile_quality)],
                 ["Shot coverage", pct(row.accounted_vs_expected_fga)],
@@ -3348,9 +3358,9 @@
                 ["Games with shots", valueOrDash(row.games_with_player_shot)],
                 ["Ast'd % (all PBP makes)", pct(assistedShare(creationRow, null))],
                 ["Ast'd % (2PT makes)", pct(assistedFamilyShare(creationRow, ["rim", "mid2"]))],
-                ["Ast'd % (rim makes)", pct(assistedShare(creationRow, "rim"))],
+                ["Ast'd % (rim makes)", pct(hasDistanceDetail ? assistedShare(creationRow, "rim") : NaN)],
                 ["Est. ast'd % (non-dunk rim makes)", pct(nonDunkRimAssisted)],
-                ["Ast'd % (non-rim 2FGs)", pct(assistedShare(creationRow, "mid2"))],
+                ["Ast'd % (non-rim 2FGs)", pct(hasDistanceDetail ? assistedShare(creationRow, "mid2") : NaN)],
                 ["Ast'd % (3PT makes)", pct(assistedShare(creationRow, "three"))],
                 ["Ast'd % (known zones)", pct(assistedKnownZoneShare(creationRow))],
                 ["2PA rate", shotValueWithPctl(row, "box_2pt_attempt_rate")],
@@ -3373,18 +3383,25 @@
                 ["Short 3 / 3PA", "short3_family_share", "short3_imputed_fg_pct", "short3_box_anchored_fga", "short3_box_anchored_fgm", "three"],
                 ["Long 3 / 3PA", "long3_family_share", "long3_imputed_fg_pct", "long3_box_anchored_fga", "long3_box_anchored_fgm", "three"],
             ];
-            const rows = zones.map(([label, rateMetric, fgMetric, fgaMetric, fgmMetric, creationFamily]) => `
+            const rows = zones.map(([label, rateMetric, fgMetric, fgaMetric, fgmMetric, creationFamily]) => {
+                const rate = hasDistanceDetail ? row[rateMetric] : NaN;
+                const fgPct = hasDistanceDetail ? row[fgMetric] : NaN;
+                const assisted = hasDistanceDetail ? assistedShare(creationRow, creationFamily) : NaN;
+                const fga = hasDistanceDetail ? row[fgaMetric] : NaN;
+                const fgm = hasDistanceDetail ? row[fgmMetric] : NaN;
+                return `
                 <tr>
                     <td>${label}</td>
-                    <td class="prob">${pct(row[rateMetric])}</td>
-                    <td>${percentileBadge(rateMetric, row[rateMetric], row)}</td>
-                    <td class="prob">${pct(row[fgMetric])}</td>
-                    <td>${percentileBadge(fgMetric, row[fgMetric], row)}</td>
-                    <td class="prob">${pct(assistedShare(creationRow, creationFamily))}</td>
-                    <td class="prob">${number(row[fgaMetric], 0)}</td>
-                    <td class="prob">${number(row[fgmMetric], 0)}</td>
+                    <td class="prob">${pct(rate)}</td>
+                    <td>${percentileBadge(rateMetric, rate, row)}</td>
+                    <td class="prob">${pct(fgPct)}</td>
+                    <td>${percentileBadge(fgMetric, fgPct, row)}</td>
+                    <td class="prob">${pct(assisted)}</td>
+                    <td class="prob">${number(fga, 0)}</td>
+                    <td class="prob">${number(fgm, 0)}</td>
                 </tr>
-            `).join("");
+            `;
+            }).join("");
             return `
                 <div class="detail-section full">
                     <h3>Shot Profile</h3>
