@@ -1208,7 +1208,9 @@
             { key: "collegeBlk", label: "C BLK%", type: "number", format: pctPointStat },
             { key: "collegeOrb", label: "C OREB%", type: "number", format: pctPointStat },
             { key: "collegeTs", label: "C TS%", type: "number", format: pct },
+            { key: "collegeObpm", label: "C OBPM", type: "number", format: oneDecimal },
             { key: "collegeDbpm", label: "C DBPM", type: "number", format: oneDecimal },
+            { key: "collegeBpm", label: "C BPM", type: "number", format: oneDecimal },
             { key: "college3pa", label: "C 3PA rate", type: "number", format: pct },
             { key: "college2fg", label: "2FG%", type: "number", format: pct },
             { key: "collegeFt", label: "FT%", type: "number", format: pct },
@@ -1268,7 +1270,7 @@
         ];
         const statsFilterGroups = [
             ["Core", ["draftYear", "pick", "predictedDraftSlot", "player", "college", "actual", "predicted", "archetype", "position", "classYear", "season", "games", "age", "height", "weight", "wingspan", "standingReach"]],
-            ["College", ["collegeMpg", "collegePpg", "collegeRpg", "collegeApg", "collegeSpg", "collegeBpg", "collegeUsg", "collegeAst", "collegeTov", "collegeStl", "collegeBlk", "collegeOrb", "collegeTs", "collegeDbpm", "college3pa", "college2fg", "collegeFt", "collegeFta2pa", "teamSos", "dunkPct"]],
+            ["College", ["collegeMpg", "collegePpg", "collegeRpg", "collegeApg", "collegeSpg", "collegeBpg", "collegeUsg", "collegeAst", "collegeTov", "collegeStl", "collegeBlk", "collegeOrb", "collegeTs", "collegeObpm", "collegeDbpm", "collegeBpm", "college3pa", "college2fg", "collegeFt", "collegeFta2pa", "teamSos", "dunkPct"]],
             ["Model", ["binaryOut", "starter", "starPlus", "superstar"]],
             ["Projected NBA", ["predMpg", "predPpg", "predUsg", "predAst", "predTov", "predReb", "predOrb", "predStl", "predBlk", "predTs", "pred3pa", "pred3p", "predPie"]],
             ["Peak NBA", ["peakMpg", "peakPpg", "peakUsg", "peakAst", "peakTs", "peak3p", "peakPie"]],
@@ -2619,17 +2621,25 @@
                 collegeBlk: firstNumericAcross([shot, model, advanced, binaryRow], ["college_blk_pct"]),
                 collegeOrb: firstNumericAcross([shot, model, advanced, binaryRow], ["college_orb_pct"]),
                 collegeTs: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ts_pct"]),
+                collegeObpm: firstNumericAcross(
+                    [shot, model, advanced, binaryRow, deviation],
+                    ["college_obpm"],
+                ),
                 collegeDbpm: firstNumericAcross(
                     [shot, model, advanced, binaryRow, deviation],
                     ["college_dbpm"],
+                ),
+                collegeBpm: firstNumericAcross(
+                    [shot, model, advanced, binaryRow, deviation],
+                    ["college_bpm"],
                 ),
                 college3pa: firstNumericAcross([shot, model, advanced, binaryRow], ["college_fg3a_rate", "box_3pt_attempt_rate"]),
                 college2fg: twoPointFgPct([shot, model, advanced, binaryRow]),
                 collegeFt: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ft_pct", "ft_pct"]),
                 collegeFta2pa: firstNumericAcross([shot, model, advanced, binaryRow], ["college_fta_per_2pa"]),
                 teamSos: firstNumericAcross(
-                    [binaryRow, model, advanced, shot, deviation],
-                    ["sheet_sos", "college_sos"],
+                    [model, advanced, shot, deviation],
+                    ["college_sos"],
                 ),
                 dunkPct: binary.dunkPct,
                 out: firstNumeric(model, ["p_out"]),
