@@ -1196,12 +1196,12 @@
             { key: "wingspan", label: "WS", type: "number", format: inchesValue },
             { key: "standingReach", label: "Reach", type: "number", format: inchesValue },
             { key: "collegeMpg", label: "C MPG", type: "number", format: oneDecimal },
-            { key: "collegeUsg", label: "C USG%", type: "number", format: pctStat },
-            { key: "collegeAst", label: "C AST%", type: "number", format: pctStat },
-            { key: "collegeTov", label: "C TOV%", type: "number", format: pctStat },
-            { key: "collegeStl", label: "C STL%", type: "number", format: pctStat },
-            { key: "collegeBlk", label: "C BLK%", type: "number", format: pctStat },
-            { key: "collegeOrb", label: "C OREB%", type: "number", format: pctStat },
+            { key: "collegeUsg", label: "C USG%", type: "number", format: pctPointStat },
+            { key: "collegeAst", label: "C AST%", type: "number", format: pctPointStat },
+            { key: "collegeTov", label: "C TOV%", type: "number", format: pctPointStat },
+            { key: "collegeStl", label: "C STL%", type: "number", format: pctPointStat },
+            { key: "collegeBlk", label: "C BLK%", type: "number", format: pctPointStat },
+            { key: "collegeOrb", label: "C OREB%", type: "number", format: pctPointStat },
             { key: "collegeTs", label: "C TS%", type: "number", format: pct },
             { key: "collegeDbpm", label: "C DBPM", type: "number", format: oneDecimal },
             { key: "college3pa", label: "C 3PA rate", type: "number", format: pct },
@@ -1216,21 +1216,21 @@
             { key: "superstar", label: "SUPER%", type: "number", format: pct },
             { key: "predMpg", label: "Pred MPG", type: "number", format: oneDecimal },
             { key: "predPpg", label: "Pred PPG", type: "number", format: oneDecimal },
-            { key: "predUsg", label: "Pred USG%", type: "number", format: pctStat },
-            { key: "predAst", label: "Pred AST%", type: "number", format: pctStat },
-            { key: "predTov", label: "Pred TOV%", type: "number", format: pctStat },
-            { key: "predReb", label: "Pred REB%", type: "number", format: pctStat },
-            { key: "predOrb", label: "Pred OREB%", type: "number", format: pctStat },
-            { key: "predStl", label: "Pred STL%", type: "number", format: pctStat },
-            { key: "predBlk", label: "Pred BLK%", type: "number", format: pctStat },
+            { key: "predUsg", label: "Pred USG%", type: "number", format: pctPointStat },
+            { key: "predAst", label: "Pred AST%", type: "number", format: pctPointStat },
+            { key: "predTov", label: "Pred TOV%", type: "number", format: pctPointStat },
+            { key: "predReb", label: "Pred REB%", type: "number", format: pctPointStat },
+            { key: "predOrb", label: "Pred OREB%", type: "number", format: pctPointStat },
+            { key: "predStl", label: "Pred STL%", type: "number", format: pctPointStat },
+            { key: "predBlk", label: "Pred BLK%", type: "number", format: pctPointStat },
             { key: "predTs", label: "Pred TS%", type: "number", format: pct },
             { key: "pred3pa", label: "Pred 3PA", type: "number", format: pct },
             { key: "pred3p", label: "Pred 3P%", type: "number", format: pct },
             { key: "predPie", label: "Pred PIE", type: "number", format: pct },
             { key: "peakMpg", label: "Peak MPG", type: "number", format: oneDecimal },
             { key: "peakPpg", label: "Peak PPG", type: "number", format: oneDecimal },
-            { key: "peakUsg", label: "Peak USG%", type: "number", format: pctStat },
-            { key: "peakAst", label: "Peak AST%", type: "number", format: pctStat },
+            { key: "peakUsg", label: "Peak USG%", type: "number", format: pctPointStat },
+            { key: "peakAst", label: "Peak AST%", type: "number", format: pctPointStat },
             { key: "peakTs", label: "Peak TS%", type: "number", format: pct },
             { key: "peak3p", label: "Peak 3P%", type: "number", format: pct },
             { key: "peakPie", label: "Peak PIE", type: "number", format: pct },
@@ -4057,6 +4057,7 @@
             if (!Number.isFinite(left) || !Number.isFinite(right)) return "n/a";
             const diff = right - left;
             if (column.format === pct || column.format === pctStat) return signedPct(diff);
+            if (column.format === pctPointStat) return signedPctPointStat(diff);
             if (column.format === inchesValue) return signedNumber(diff, 1);
             if (column.format === number0) return signedNumber(diff, 0);
             return signedNumber(diff, 1);
@@ -5338,6 +5339,12 @@
             const num = numValue(value);
             if (!Number.isFinite(num)) return "n/a";
             return `${num >= 0 ? "+" : ""}${(num * 100).toFixed(1)} pp`;
+        }
+
+        function signedPctPointStat(value) {
+            const num = numValue(value);
+            if (!Number.isFinite(num)) return "n/a";
+            return `${num >= 0 ? "+" : ""}${num.toFixed(1)} pp`;
         }
 
         document.querySelectorAll("th[data-sort]").forEach(th => {
