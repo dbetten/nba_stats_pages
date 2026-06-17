@@ -1196,6 +1196,11 @@
             { key: "wingspan", label: "WS", type: "number", format: inchesValue },
             { key: "standingReach", label: "Reach", type: "number", format: inchesValue },
             { key: "collegeMpg", label: "C MPG", type: "number", format: oneDecimal },
+            { key: "collegePpg", label: "C PPG", type: "number", format: oneDecimal },
+            { key: "collegeRpg", label: "C RPG", type: "number", format: oneDecimal },
+            { key: "collegeApg", label: "C APG", type: "number", format: oneDecimal },
+            { key: "collegeSpg", label: "C SPG", type: "number", format: oneDecimal },
+            { key: "collegeBpg", label: "C BPG", type: "number", format: oneDecimal },
             { key: "collegeUsg", label: "C USG%", type: "number", format: pctPointStat },
             { key: "collegeAst", label: "C AST%", type: "number", format: pctPointStat },
             { key: "collegeTov", label: "C TOV%", type: "number", format: pctPointStat },
@@ -1263,7 +1268,7 @@
         ];
         const statsFilterGroups = [
             ["Core", ["draftYear", "pick", "predictedDraftSlot", "player", "college", "actual", "predicted", "archetype", "position", "classYear", "season", "games", "age", "height", "weight", "wingspan", "standingReach"]],
-            ["College", ["collegeMpg", "collegeUsg", "collegeAst", "collegeTov", "collegeStl", "collegeBlk", "collegeOrb", "collegeTs", "collegeDbpm", "college3pa", "college2fg", "collegeFt", "collegeFta2pa", "teamSos", "dunkPct"]],
+            ["College", ["collegeMpg", "collegePpg", "collegeRpg", "collegeApg", "collegeSpg", "collegeBpg", "collegeUsg", "collegeAst", "collegeTov", "collegeStl", "collegeBlk", "collegeOrb", "collegeTs", "collegeDbpm", "college3pa", "college2fg", "collegeFt", "collegeFta2pa", "teamSos", "dunkPct"]],
             ["Model", ["binaryOut", "starter", "starPlus", "superstar"]],
             ["Projected NBA", ["predMpg", "predPpg", "predUsg", "predAst", "predTov", "predReb", "predOrb", "predStl", "predBlk", "predTs", "pred3pa", "pred3p", "predPie"]],
             ["Peak NBA", ["peakMpg", "peakPpg", "peakUsg", "peakAst", "peakTs", "peak3p", "peakPie"]],
@@ -2602,6 +2607,11 @@
                     ["standing_reach"],
                 ),
                 collegeMpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_mpg"]),
+                collegePpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ppg"]),
+                collegeRpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_rpg"]),
+                collegeApg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_apg"]),
+                collegeSpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_spg"]),
+                collegeBpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_bpg"]),
                 collegeUsg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_usg_pct"]),
                 collegeAst: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ast_pct"]),
                 collegeTov: firstNumericAcross([shot, model, advanced, binaryRow], ["college_tov_pct"]),
@@ -3156,6 +3166,11 @@
                 ["Class", valueOrDash(firstValue(rows, ["class_year", "college_year_class_year"]))],
                 ["Projected NBA pos", valueOrDash(firstValue(rows, ["projected_nba_position", "position_name"]))],
                 ["College pos", valueOrDash(firstValue(rows, ["college_pos", "college_year_pos"]))],
+                ["PPG", collegeProfilePlainValue(rows, "college_ppg")],
+                ["RPG", collegeProfilePlainValue(rows, "college_rpg")],
+                ["APG", collegeProfilePlainValue(rows, "college_apg")],
+                ["SPG", collegeProfilePlainValue(rows, "college_spg")],
+                ["BPG", collegeProfilePlainValue(rows, "college_bpg")],
                 ["USG%", collegeProfileValue(rows, "college_usg_pct")],
                 ["AST%", collegeProfileValue(rows, "college_ast_pct")],
                 ["TOV%", collegeProfileValue(rows, "college_tov_pct")],
@@ -3168,6 +3183,13 @@
                 ["FTA / 2FGA", collegeProfileValue(rows, "college_fta_per_2pa", pct)],
             ];
             return detailSection("College Profile", stats);
+        }
+
+        function collegeProfilePlainValue(rows, metric, formatter = numberValue) {
+            const row = firstPercentileRowWithValue(rows, metric);
+            const value = row ? row[metric] : "";
+            if (value === "" || value === undefined || value === null) return "--";
+            return formatter(value);
         }
 
         function collegeProfileValue(rows, metric, formatter = null) {
