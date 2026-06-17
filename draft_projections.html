@@ -274,12 +274,15 @@
             max-width: 1180px;
             margin: 0 auto 16px;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
             border-radius: 8px;
             border: 1px solid #26344f;
         }
         #stats-table-wrap {
             max-height: calc(100vh - 220px);
             overflow: auto;
+            touch-action: pan-x pan-y;
         }
         #analog-table-wrap {
             max-height: calc(100vh - 260px);
@@ -290,6 +293,10 @@
             min-width: 980px;
             border-collapse: collapse;
             background: #182235;
+        }
+        #stats-table {
+            width: max-content;
+            min-width: 100%;
         }
         th, td {
             padding: 10px 12px;
@@ -786,6 +793,13 @@
             .filter-controls { justify-content: stretch; }
             .filter-select, .filter-dropdown, .filter-number { flex: 1; min-width: 0; }
             .year-btn, .mode-btn { padding: 7px 10px; }
+            .table-wrap {
+                max-width: calc(100vw - 24px);
+                width: calc(100vw - 24px);
+            }
+            #stats-table-wrap {
+                max-height: calc(100vh - 180px);
+            }
             th, td { padding: 8px; }
         }
     </style>
