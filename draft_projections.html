@@ -469,61 +469,18 @@
             z-index: 3;
             box-shadow: 0 1px 0 #26344f;
         }
-        #stats-table .stats-sticky-year,
-        #stats-table .stats-sticky-pick,
-        #stats-table .stats-sticky-predicted-slot,
-        #stats-table .stats-sticky-player,
-        #stats-table .stats-sticky-college {
-            position: sticky;
-            background: #182235;
-            z-index: 2;
-        }
-        #stats-table th.stats-sticky-year,
-        #stats-table th.stats-sticky-pick,
-        #stats-table th.stats-sticky-predicted-slot,
-        #stats-table th.stats-sticky-player,
-        #stats-table th.stats-sticky-college {
-            background: #0f172a;
-            z-index: 6;
-        }
-        #stats-table .stats-sticky-year {
-            left: 0;
-            min-width: 72px;
-            width: 72px;
-        }
-        #stats-table .stats-sticky-pick {
-            left: 0;
-            min-width: 58px;
-            width: 58px;
-        }
-        body.scope-all #stats-table .stats-sticky-pick {
-            left: 72px;
-        }
-        #stats-table .stats-sticky-predicted-slot {
-            left: 58px;
-            min-width: 86px;
-            width: 86px;
-        }
-        body.scope-all #stats-table .stats-sticky-predicted-slot {
-            left: 130px;
-        }
         #stats-table .stats-sticky-player {
-            left: 144px;
+            position: sticky;
+            left: 0;
             min-width: 190px;
             width: 190px;
-        }
-        body.scope-all #stats-table .stats-sticky-player {
-            left: 216px;
+            background: #182235;
+            z-index: 2;
             box-shadow: 12px 0 18px -16px rgba(0, 0, 0, 0.9);
         }
-        body:not(.scope-all) #stats-table .stats-sticky-college {
-            left: 334px;
-            min-width: 150px;
-            width: 150px;
-            box-shadow: 12px 0 18px -16px rgba(0, 0, 0, 0.9);
-        }
-        body.scope-all #stats-table .stats-sticky-college {
-            position: static;
+        #stats-table th.stats-sticky-player {
+            background: #0f172a;
+            z-index: 6;
         }
         tr:hover {
             background: #22304a;
@@ -4732,14 +4689,10 @@
         }
 
         function statsCellClass(column, baseClass) {
-            const stickyByKey = {
-                draftYear: "stats-sticky-year",
-                pick: "stats-sticky-pick",
-                predictedDraftSlot: "stats-sticky-predicted-slot",
-                player: "stats-sticky-player",
-                college: "stats-sticky-college",
-            };
-            return [baseClass, stickyByKey[column.key] || ""].filter(Boolean).join(" ");
+            return [
+                baseClass,
+                column.key === "player" ? "stats-sticky-player" : "",
+            ].filter(Boolean).join(" ");
         }
 
         function renderDeviationTable(year) {
