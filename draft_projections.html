@@ -1605,14 +1605,14 @@
         function buildModelLabelIndex() {
             state.modelLabelByPlayer = new Map();
             for (const row of state.allScoreRows) {
-                state.modelLabelByPlayer.set(playerKey(row), modelLabelFromRawRow(row));
+                setPlayerIndexedValue(state.modelLabelByPlayer, row, modelLabelFromRawRow(row));
             }
         }
 
         function buildBinaryScoreIndex() {
             state.binaryScoreByPlayer = new Map();
             for (const row of state.binaryRows) {
-                state.binaryScoreByPlayer.set(playerKey(row), {
+                setPlayerIndexedValue(state.binaryScoreByPlayer, row, {
                     binaryOut: numValue(row.p_out_binary),
                     starter: numValue(row.p_starter),
                     starPlus: numValue(row.p_star_plus),
@@ -1628,7 +1628,7 @@
         }
 
         function binaryScoresForRow(row) {
-            return state.binaryScoreByPlayer.get(playerKey(row)) || {};
+            return getPlayerIndexedValue(state.binaryScoreByPlayer, row) || {};
         }
 
         function modelLabelFromRawRow(row) {
@@ -1650,13 +1650,31 @@
         }
 
         function modelLabelForRow(row) {
-            return state.modelLabelByPlayer.get(playerKey(row)) || {};
+            return getPlayerIndexedValue(state.modelLabelByPlayer, row) || {};
         }
 
         function playerKey(row) {
             const playerId = row.player_id ?? row.playerId ?? "";
             const draftYear = row.draft_year ?? row.draftYear ?? row.year ?? "";
             return `${playerId}|${Number(draftYear) || draftYear}`;
+        }
+
+        function playerNameYearKey(row) {
+            const name = normalizeName(row.player_name ?? row.player);
+            const draftYear = row.draft_year ?? row.draftYear ?? row.year ?? "";
+            const year = Number(draftYear) || draftYear;
+            return name && year ? `name:${name}|${year}` : "";
+        }
+
+        function setPlayerIndexedValue(map, row, value) {
+            const idKey = playerKey(row);
+            if (idKey && idKey !== "|") map.set(idKey, value);
+            const nameKey = playerNameYearKey(row);
+            if (nameKey) map.set(nameKey, value);
+        }
+
+        function getPlayerIndexedValue(map, row) {
+            return map.get(playerKey(row)) || map.get(playerNameYearKey(row));
         }
 
         function dedupeRowsByPlayer(rows) {
@@ -1828,20 +1846,34 @@
         function buildStatsData() {
             state.statsData = {};
             const byKey = new Map();
+            const keyAliases = new Map();
             const shotRowsByKey = new Map();
+            const canonicalKeyForRow = row => {
+                const idKey = playerKey(row);
+                const nameKey = playerNameYearKey(row);
+                return keyAliases.get(idKey) || keyAliases.get(nameKey) || idKey || nameKey;
+            };
             const ensure = row => {
-                const key = playerKey(row);
+                const key = canonicalKeyForRow(row);
                 if (!key || key === "|") return null;
                 const bundle = byKey.get(key) || {};
                 byKey.set(key, bundle);
+                const idKey = playerKey(row);
+                const nameKey = playerNameYearKey(row);
+                if (idKey && idKey !== "|") keyAliases.set(idKey, key);
+                if (nameKey) keyAliases.set(nameKey, key);
                 return bundle;
             };
             const addShotSeason = row => {
-                const key = playerKey(row);
+                const key = canonicalKeyForRow(row);
                 if (!key || key === "|") return;
                 const rows = shotRowsByKey.get(key) || [];
                 rows.push(row);
                 shotRowsByKey.set(key, rows);
+                const idKey = playerKey(row);
+                const nameKey = playerNameYearKey(row);
+                if (idKey && idKey !== "|") keyAliases.set(idKey, key);
+                if (nameKey) keyAliases.set(nameKey, key);
             };
             for (const row of [
                 ...state.allScoreRows,
@@ -2523,7 +2555,10 @@
                 pick: firstNumeric(row, ["pick_number", "pick"]),
                 predictedDraftSlot: binary.predictedDraftSlot,
                 player: row.player_name || row.player || "",
-                college: row.college || "",
+                college: firstTextAcross(
+                    [shot, deviation, model, advanced, binaryRow],
+                    ["college_team", "college_year_team", "college"],
+                ),
                 actual: actual === "TBD" ? normalizeCategory(labels.actual || "TBD") : actual,
                 predicted: labels.predicted || canonicalPredictedCategory(
                     binary,
@@ -2549,10 +2584,7 @@
                     [shot, model, advanced, binaryRow, deviation],
                     ["expected_games", "games", "college_games", "g"],
                 ),
-                age: firstNumericAcross(
-                    [model, advanced, binaryRow, shot, deviation],
-                    ["age_at_draft", "sheet_age_at_draft", "tankathon_age", "college_year_age"],
-                ),
+                age: statsSeasonAge([shot, deviation, model, advanced, binaryRow]),
                 height: firstNumericAcross(
                     [model, advanced, binaryRow, shot, deviation],
                     ["height_wo_shoes"],
@@ -2671,6 +2703,26 @@
                 if (Number.isFinite(value)) return value;
             }
             return NaN;
+        }
+
+        function statsSeasonAge(rows) {
+            const seasonAge = firstNumericAcross(rows, ["college_year_age"]);
+            if (Number.isFinite(seasonAge)) return seasonAge;
+
+            const draftAge = firstNumericAcross(
+                rows,
+                ["age_at_draft", "sheet_age_at_draft", "tankathon_age"],
+            );
+            if (!Number.isFinite(draftAge)) return NaN;
+
+            const draftYear = firstNumericAcross(rows, ["draft_year", "draftYear"]);
+            const statYear = firstNumericAcross(rows, ["espn_season"]);
+            if (!Number.isFinite(draftYear) || !Number.isFinite(statYear)) {
+                return draftAge;
+            }
+
+            const yearGap = Math.max(0, Math.round(draftYear - statYear));
+            return draftAge - yearGap;
         }
 
         function twoPointFgPct(rows) {
