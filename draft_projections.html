@@ -124,6 +124,19 @@
             color: #f8fafc;
             font-size: 13px;
         }
+        .filter-toggle {
+            min-height: 36px;
+            padding: 8px 10px;
+            border: 1px solid #2d3d5c;
+            border-radius: 6px;
+            background: #182235;
+            color: #dbeafe;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
         .filter-dropdown {
             position: relative;
             min-width: 170px;
@@ -816,6 +829,10 @@
             <summary id="actual-filter-summary">Actual: All</summary>
             <div class="filter-menu-options" id="actual-filter-options"></div>
         </details>
+        <label class="filter-toggle hidden" id="stats-season-toggle-wrap">
+            <input id="stats-season-toggle" type="checkbox">
+            Show non-final seasons
+        </label>
     </div>
 
     <div class="stats-filter-panel hidden" id="stats-filter-panel">
@@ -1098,6 +1115,7 @@
             creationBySeason: {},
             allPlayerRows: [],
             allPlayerArchetype: "all",
+            showNonFinalStatsSeasons: false,
             bioFilters: {
                 classYear: "all",
                 ageMin: "",
@@ -2498,6 +2516,7 @@
                 ? careerThreePct
                 : firstNumeric(advanced, ["pred_peak_fg3_pct"]);
             const actual = normalizeCategory(model.actual_tier_label || actualCategoryFromRow(model));
+            const hasShotSeasonFlag = Object.prototype.hasOwnProperty.call(shot, "is_final_college_season");
             return {
                 playerId: row.player_id ?? row.playerId,
                 draftYear: Number(row.draft_year ?? row.draftYear),
@@ -2521,6 +2540,7 @@
                     [shot, model, advanced, binaryRow, deviation],
                     ["class_year", "college_year_class_year"],
                 ),
+                isFinalCollegeSeason: !hasShotSeasonFlag || isTrue(shot.is_final_college_season),
                 season: firstTextAcross(
                     [shot, model, advanced, binaryRow, deviation],
                     ["college_season", "college_year_season"],
@@ -3637,6 +3657,19 @@
             renderBioFilters();
             renderCategoryFilterMenu("pred");
             renderCategoryFilterMenu("actual");
+            renderStatsSeasonToggle();
+        }
+
+        function renderStatsSeasonToggle() {
+            const wrap = document.getElementById("stats-season-toggle-wrap");
+            const input = document.getElementById("stats-season-toggle");
+            wrap.classList.toggle("hidden", state.currentView !== "stats");
+            input.checked = state.showNonFinalStatsSeasons;
+            input.onchange = () => {
+                state.showNonFinalStatsSeasons = input.checked;
+                renderCurrentView();
+                updateShareUrl();
+            };
         }
 
         function renderBioFilters() {
@@ -3891,6 +3924,8 @@
                 state.compareSelectedKeyB = compareB;
                 state.compareSearchB = analogRowLabel(analogRowByKey(compareB));
             }
+
+            state.showNonFinalStatsSeasons = params.get("nonfinal") === "1";
         }
 
         function updateShareUrl() {
@@ -3906,6 +3941,9 @@
             if (state.currentView === "compare") {
                 if (state.compareSelectedKeyA) params.set("a", state.compareSelectedKeyA);
                 if (state.compareSelectedKeyB) params.set("b", state.compareSelectedKeyB);
+            }
+            if (state.currentView === "stats" && state.showNonFinalStatsSeasons) {
+                params.set("nonfinal", "1");
             }
             const query = params.toString();
             const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
@@ -4353,6 +4391,7 @@
             document.getElementById("deviation-table-wrap").classList.toggle("hidden", !deviations);
             document.getElementById("advanced-table-wrap").classList.toggle("hidden", !advanced);
             document.getElementById("shot-table-wrap").classList.toggle("hidden", !shots);
+            renderStatsSeasonToggle();
             renderStatsFilterBuilder();
             if (projections) renderTable(state.currentYear);
             else if (stats) renderStatsTable(state.currentYear);
@@ -4420,8 +4459,16 @@
             </tr>`;
         }
 
+        function isVisibleStatsSeason(row) {
+            return state.showNonFinalStatsSeasons || row.isFinalCollegeSeason !== false;
+        }
+
         function renderStatsTable(year) {
-            const data = applyPlayerFilters(rowsForCurrentScope(state.statsData, year));
+            const filtered = applyPlayerFilters(rowsForCurrentScope(state.statsData, year));
+            const hiddenNonFinalRows = state.showNonFinalStatsSeasons
+                ? 0
+                : filtered.filter(row => row.isFinalCollegeSeason === false).length;
+            const data = filtered.filter(isVisibleStatsSeason);
             const sorted = sortData(data, state.statsSort.col, state.statsSort.desc);
             const head = document.getElementById("stats-head");
             const body = document.getElementById("stats-body");
@@ -4459,7 +4506,7 @@
                     renderStatsTable(state.currentYear);
                 });
             });
-            renderStatsSummary(data, year);
+            renderStatsSummary(data, year, hiddenNonFinalRows);
         }
 
         function renderAnalogView() {
@@ -4879,7 +4926,7 @@
             document.getElementById("data-warning").textContent = "";
         }
 
-        function renderStatsSummary(data, year) {
+        function renderStatsSummary(data, year, hiddenNonFinalRows = 0) {
             const summary = document.getElementById("year-summary");
             const withPredPpg = data.filter(d => Number.isFinite(d.predPpg));
             const withPeakPpg = data.filter(d => Number.isFinite(d.peakPpg));
@@ -4902,7 +4949,9 @@
                 </div>
             `;
             document.getElementById("data-warning").textContent =
-                "All Stats merges model outputs, college stats, projected NBA stats, realized peak NBA stats where available, final-season deviations, and final-year shot profile rows.";
+                hiddenNonFinalRows > 0
+                    ? `${hiddenNonFinalRows} non-final season rows are hidden. Turn on Show non-final seasons to include them.`
+                    : "All Stats merges model outputs, college stats, projected NBA stats, realized peak NBA stats where available, final-season deviations, and final-year shot profile rows.";
         }
 
         function renderAdvancedSummary(data, year) {
