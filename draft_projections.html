@@ -1519,6 +1519,7 @@
             buildDeviationData();
             buildAdvancedData();
             buildShotData();
+            applyUrlState();
             renderModelSnapshot();
             renderLeakageControls();
             renderViewButtons();
@@ -1529,6 +1530,7 @@
             renderCurrentView();
             renderArchetypes();
             renderPositionArchetypes();
+            updateShareUrl();
         }
 
         async function fetchJson(path) {
@@ -3644,12 +3646,18 @@
             document.querySelectorAll(".mode-btn[data-view]").forEach(btn => {
                 btn.addEventListener("click", () => {
                     state.currentView = btn.dataset.view;
-                    document.querySelectorAll(".mode-btn[data-view]").forEach(b => {
-                        b.classList.toggle("active", b.dataset.view === state.currentView);
-                    });
+                    syncViewButtons();
                     renderYearButtons();
                     renderCurrentView();
+                    updateShareUrl();
                 });
+            });
+            syncViewButtons();
+        }
+
+        function syncViewButtons() {
+            document.querySelectorAll(".mode-btn[data-view]").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.view === state.currentView);
             });
         }
 
@@ -3800,6 +3808,7 @@
                     state.analogSearch = analogRowLabel(row);
                     document.getElementById("analog-search-input").value = state.analogSearch;
                     renderAnalogView();
+                    updateShareUrl();
                 },
             });
         }
@@ -3815,6 +3824,7 @@
                     state[`compareSearch${suffix}`] = analogRowLabel(row);
                     document.getElementById(`compare-search-${side}`).value = state[`compareSearch${suffix}`];
                     renderCompareView();
+                    updateShareUrl();
                 },
             });
         }
@@ -3890,6 +3900,62 @@
                 row.college || "",
             ].filter(Boolean);
             return bits.join(" | ");
+        }
+
+        function applyUrlState() {
+            const params = new URLSearchParams(window.location.search);
+            const view = params.get("view");
+            const validViews = new Set(["projections", "stats", "analogs", "compare", "advanced", "shots", "deviations"]);
+            if (validViews.has(view)) state.currentView = view;
+
+            const scope = params.get("scope");
+            const year = Number(params.get("year"));
+            if (scope === "all") {
+                state.yearScope = "all";
+            } else if (Number.isFinite(year)) {
+                state.yearScope = "single";
+                state.currentYear = year;
+            }
+
+            const analogKey = params.get("analog");
+            if (analogKey && analogRowByKey(analogKey)) {
+                state.analogSelectedKey = analogKey;
+                state.analogSearch = analogRowLabel(analogRowByKey(analogKey));
+            }
+
+            const compareA = params.get("a");
+            if (compareA && analogRowByKey(compareA)) {
+                state.compareSelectedKeyA = compareA;
+                state.compareSearchA = analogRowLabel(analogRowByKey(compareA));
+            }
+
+            const compareB = params.get("b");
+            if (compareB && analogRowByKey(compareB)) {
+                state.compareSelectedKeyB = compareB;
+                state.compareSearchB = analogRowLabel(analogRowByKey(compareB));
+            }
+        }
+
+        function updateShareUrl() {
+            const params = new URLSearchParams();
+            if (state.currentView !== "projections") params.set("view", state.currentView);
+            if (supportsYearScope()) {
+                if (isAllYearScope()) params.set("scope", "all");
+                else params.set("year", String(state.currentYear));
+            }
+            if (state.currentView === "analogs" && state.analogSelectedKey) {
+                params.set("analog", state.analogSelectedKey);
+            }
+            if (state.currentView === "compare") {
+                if (state.compareSelectedKeyA) params.set("a", state.compareSelectedKeyA);
+                if (state.compareSelectedKeyB) params.set("b", state.compareSelectedKeyB);
+            }
+            const query = params.toString();
+            const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+            const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+            if (nextUrl !== currentUrl) {
+                window.history.replaceState(null, "", nextUrl);
+            }
         }
 
         function renderCompareView() {
@@ -4164,6 +4230,7 @@
                 btn.classList.toggle("active", btn.dataset.year && Number(btn.dataset.year) === year);
             });
             renderCurrentView();
+            updateShareUrl();
         }
 
         function selectAllYears() {
@@ -4172,6 +4239,7 @@
                 btn.classList.toggle("active", btn.dataset.yearScope === "all");
             });
             renderCurrentView();
+            updateShareUrl();
         }
 
         function isAllYearScope() {
@@ -4187,6 +4255,10 @@
         }
 
         function supportsPlayerFilters() {
+            return ["projections", "stats", "advanced", "shots", "deviations"].includes(state.currentView);
+        }
+
+        function supportsYearScope() {
             return ["projections", "stats", "advanced", "shots", "deviations"].includes(state.currentView);
         }
 
