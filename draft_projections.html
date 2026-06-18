@@ -2559,6 +2559,9 @@
             const actual = normalizeCategory(model.actual_tier_label || actualCategoryFromRow(model));
             const hasShotSeasonFlag = Object.prototype.hasOwnProperty.call(shot, "is_final_college_season");
             const hasShotDistanceDetail = isTrue(shot.has_distance_detail_shot_profile);
+            const collegeStatRows = unsupportedCollegeShotRow(shot)
+                ? [model, advanced, deviation]
+                : [shot, model, advanced, deviation];
             return {
                 playerId: row.player_id ?? row.playerId,
                 draftYear: Number(row.draft_year ?? row.draftYear),
@@ -2608,35 +2611,35 @@
                     [model, advanced, binaryRow, shot, deviation],
                     ["standing_reach"],
                 ),
-                collegeMpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_mpg"]),
-                collegePpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ppg"]),
-                collegeRpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_rpg"]),
-                collegeApg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_apg"]),
-                collegeSpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_spg"]),
-                collegeBpg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_bpg"]),
-                collegeUsg: firstNumericAcross([shot, model, advanced, binaryRow], ["college_usg_pct"]),
-                collegeAst: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ast_pct"]),
-                collegeTov: firstNumericAcross([shot, model, advanced, binaryRow], ["college_tov_pct"]),
-                collegeStl: firstNumericAcross([shot, model, advanced, binaryRow], ["college_stl_pct"]),
-                collegeBlk: firstNumericAcross([shot, model, advanced, binaryRow], ["college_blk_pct"]),
-                collegeOrb: firstNumericAcross([shot, model, advanced, binaryRow], ["college_orb_pct"]),
-                collegeTs: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ts_pct"]),
+                collegeMpg: firstNumericAcross(collegeStatRows, ["college_mpg"]),
+                collegePpg: firstNumericAcross(collegeStatRows, ["college_ppg"]),
+                collegeRpg: firstNumericAcross(collegeStatRows, ["college_rpg"]),
+                collegeApg: firstNumericAcross(collegeStatRows, ["college_apg"]),
+                collegeSpg: firstNumericAcross(collegeStatRows, ["college_spg"]),
+                collegeBpg: firstNumericAcross(collegeStatRows, ["college_bpg"]),
+                collegeUsg: firstNumericAcross(collegeStatRows, ["college_usg_pct"]),
+                collegeAst: firstNumericAcross(collegeStatRows, ["college_ast_pct"]),
+                collegeTov: firstNumericAcross(collegeStatRows, ["college_tov_pct"]),
+                collegeStl: firstNumericAcross(collegeStatRows, ["college_stl_pct"]),
+                collegeBlk: firstNumericAcross(collegeStatRows, ["college_blk_pct"]),
+                collegeOrb: firstNumericAcross(collegeStatRows, ["college_orb_pct"]),
+                collegeTs: firstNumericAcross(collegeStatRows, ["college_ts_pct"]),
                 collegeObpm: firstNumericAcross(
-                    [shot, model, advanced, binaryRow, deviation],
+                    collegeStatRows,
                     ["college_obpm"],
                 ),
                 collegeDbpm: firstNumericAcross(
-                    [shot, model, advanced, binaryRow, deviation],
+                    collegeStatRows,
                     ["college_dbpm"],
                 ),
                 collegeBpm: firstNumericAcross(
-                    [shot, model, advanced, binaryRow, deviation],
+                    collegeStatRows,
                     ["college_bpm"],
                 ),
-                college3pa: firstNumericAcross([shot, model, advanced, binaryRow], ["college_fg3a_rate", "box_3pt_attempt_rate"]),
-                college2fg: twoPointFgPct([shot, model, advanced, binaryRow]),
-                collegeFt: firstNumericAcross([shot, model, advanced, binaryRow], ["college_ft_pct", "ft_pct"]),
-                collegeFta2pa: firstNumericAcross([shot, model, advanced, binaryRow], ["college_fta_per_2pa"]),
+                college3pa: firstNumericAcross(collegeStatRows, ["college_fg3a_rate", "box_3pt_attempt_rate"]),
+                college2fg: twoPointFgPct(collegeStatRows),
+                collegeFt: firstNumericAcross(collegeStatRows, ["college_ft_pct", "ft_pct"]),
+                collegeFta2pa: firstNumericAcross(collegeStatRows, ["college_fta_per_2pa"]),
                 teamSos: firstNumericAcross(
                     [model, advanced, shot, deviation],
                     ["college_sos"],
@@ -2707,6 +2710,13 @@
                 astDelta: firstNumeric(deviation, ["ast_pct_deviation"]),
                 tsDelta: firstNumeric(deviation, ["ts_pct_deviation"]),
             };
+        }
+
+        function unsupportedCollegeShotRow(row) {
+            const quality = String(row?.shot_profile_quality || "");
+            const confidence = String(row?.shot_profile_confidence || "");
+            const missing = String(row?.missing_features || "");
+            return /missing_no_ncaa|missing_final_college_season/.test(`${quality} ${confidence} ${missing}`);
         }
 
         function statsCollegeValue(shot, deviation, model, advanced, binaryRow) {
@@ -3247,8 +3257,9 @@
                 const value = row?.[metric];
                 return value !== undefined && value !== null && value !== "";
             };
-            return rows.find(row => hasValue(row) && row.source_dataset) ||
-                rows.find(hasValue) ||
+            const supportedRows = rows.filter(row => !unsupportedCollegeShotRow(row));
+            return supportedRows.find(row => hasValue(row) && row.source_dataset) ||
+                supportedRows.find(hasValue) ||
                 null;
         }
 
