@@ -144,7 +144,7 @@
     "all_scores": "reports/draft_binary_outcome_all_scores.csv"
   },
   "post_stack_refresh": {
-    "reason": "Applied role-load damping to legacy star stack and rescue paths.",
+    "reason": "Refreshed post-2021 projection scores after adding official 2026 combine vertical fields.",
     "selected_models": {
       "out_binary": "base_hist_gradient_boosting",
       "star_plus": "base_logistic",
