@@ -1663,9 +1663,14 @@
         function playerKey(row) {
             const playerId = row.player_id ?? row.playerId ?? "";
             const draftYear = row.draft_year ?? row.draftYear ?? row.year ?? "";
+            const year = Number(draftYear) || draftYear;
+            const numericPlayerId = Number(playerId);
+            if (Number(year) >= 2026 && Number.isFinite(numericPlayerId) && numericPlayerId >= 2026000) {
+                return playerNameYearKey(row);
+            }
             if (playerId === "" || playerId === undefined || playerId === null) return "";
             if (draftYear === "" || draftYear === undefined || draftYear === null) return "";
-            return `${playerId}|${Number(draftYear) || draftYear}`;
+            return `${playerId}|${year}`;
         }
 
         function playerNameYearKey(row) {
