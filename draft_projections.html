@@ -814,6 +814,7 @@
 
     <div class="filter-controls hidden" id="player-filters">
         <select class="filter-select" id="player-archetype-filter" aria-label="Archetype filter"></select>
+        <select class="filter-select" id="player-position-filter" aria-label="Position filter"></select>
         <select class="filter-select" id="player-class-filter" aria-label="Class filter"></select>
         <input class="filter-number" id="filter-age-min" type="number" step="0.1" placeholder="Age min" aria-label="Minimum age">
         <input class="filter-number" id="filter-age-max" type="number" step="0.1" placeholder="Age max" aria-label="Maximum age">
@@ -1117,6 +1118,7 @@
             allPlayerArchetype: "all",
             showNonFinalStatsSeasons: false,
             bioFilters: {
+                position: "all",
                 classYear: "all",
                 ageMin: "",
                 ageMax: "",
@@ -3807,8 +3809,24 @@
         }
 
         function renderBioFilters() {
+            const positionSelect = document.getElementById("player-position-filter");
             const classSelect = document.getElementById("player-class-filter");
             const rows = Object.values(state.statsData).flat();
+            const positions = [...new Set(rows.map(row => row.position).filter(Boolean))]
+                .sort((a, b) => positionSortValue(a) - positionSortValue(b) || a.localeCompare(b));
+            positionSelect.innerHTML = [
+                `<option value="all">All positions</option>`,
+                ...positions.map(position => (
+                    `<option value="${escapeHtml(position)}">${escapeHtml(position)}</option>`
+                )),
+            ].join("");
+            positionSelect.value = state.bioFilters.position;
+            positionSelect.addEventListener("change", () => {
+                state.bioFilters.position = positionSelect.value;
+                renderCurrentView();
+                updateShareUrl();
+            });
+
             const classes = [...new Set(rows.map(row => row.classYear).filter(Boolean))]
                 .sort((a, b) => classSortValue(a) - classSortValue(b) || a.localeCompare(b));
             classSelect.innerHTML = [
@@ -3840,6 +3858,12 @@
         function classSortValue(value) {
             const normalized = String(value || "").toUpperCase();
             const order = { FR: 1, SO: 2, JR: 3, SR: 4 };
+            return order[normalized] || 99;
+        }
+
+        function positionSortValue(value) {
+            const normalized = String(value || "").toUpperCase();
+            const order = { PG: 1, SG: 2, SF: 3, PF: 4, C: 5, G: 6, F: 7 };
             return order[normalized] || 99;
         }
 
@@ -4059,6 +4083,8 @@
                 state.compareSearchB = analogRowLabel(analogRowByKey(compareB));
             }
 
+            const position = params.get("pos");
+            if (position) state.bioFilters.position = position;
             state.showNonFinalStatsSeasons = params.get("nonfinal") === "1";
         }
 
@@ -4078,6 +4104,9 @@
             }
             if (state.currentView === "stats" && state.showNonFinalStatsSeasons) {
                 params.set("nonfinal", "1");
+            }
+            if (state.currentView === "stats" && state.bioFilters.position !== "all") {
+                params.set("pos", state.bioFilters.position);
             }
             const query = params.toString();
             const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
@@ -4422,6 +4451,9 @@
             return rows.filter(row => {
                 const labels = filterLabelsForRow(row);
                 if (state.allPlayerArchetype !== "all" && labels.archetype !== state.allPlayerArchetype) {
+                    return false;
+                }
+                if (state.bioFilters.position !== "all" && row.position !== state.bioFilters.position) {
                     return false;
                 }
                 if (!passesBioFilters(row)) return false;
