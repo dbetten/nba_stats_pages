@@ -105,13 +105,13 @@
       "n_samples": 383,
       "n_positive": 36,
       "positive_rate": 0.09399477806788512,
-      "average_precision": 0.5360879604031231,
-      "roc_auc": 0.9223503041946846,
-      "brier": 0.06659328728938699,
-      "log_loss": 0.21283898102085647,
-      "positive_mean_prob": 0.20900772713439988,
-      "negative_mean_prob": 0.05871584968616877,
-      "positive_p10_minus_negative_p90": -0.0383469406720337,
+      "average_precision": 0.5435305825815873,
+      "roc_auc": 0.9167467178994556,
+      "brier": 0.06671336168113932,
+      "log_loss": 0.2156456143861586,
+      "positive_mean_prob": 0.20261519972235606,
+      "negative_mean_prob": 0.05248364042876326,
+      "positive_p10_minus_negative_p90": -0.040677467067785286,
       "top20_positive_rate": 0.55,
       "top20_lift": 5.85138888888889,
       "error": ""
@@ -124,13 +124,13 @@
       "n_samples": 383,
       "n_positive": 12,
       "positive_rate": 0.031331592689295036,
-      "average_precision": 0.5779629845740243,
-      "roc_auc": 0.9353099730458221,
-      "brier": 0.02494090035592748,
-      "log_loss": 0.09481377770554802,
-      "positive_mean_prob": 0.14912599878479033,
-      "negative_mean_prob": 0.02969538946781663,
-      "positive_p10_minus_negative_p90": 0.0026948280201010005,
+      "average_precision": 0.5873993806266103,
+      "roc_auc": 0.93733153638814,
+      "brier": 0.024783541281664767,
+      "log_loss": 0.09267835550144406,
+      "positive_mean_prob": 0.14701592018125068,
+      "negative_mean_prob": 0.026753309054178612,
+      "positive_p10_minus_negative_p90": -0.004710060455768772,
       "top20_positive_rate": 0.35,
       "top20_lift": 11.170833333333334,
       "error": ""
@@ -142,5 +142,14 @@
     "selected_predictions": "reports/draft_binary_outcome_selected_predictions.csv",
     "projection_scores": "reports/draft_binary_outcome_projection_scores.csv",
     "all_scores": "reports/draft_binary_outcome_all_scores.csv"
+  },
+  "post_stack_refresh": {
+    "reason": "Applied role-load damping to legacy star stack and rescue paths.",
+    "selected_models": {
+      "out_binary": "base_hist_gradient_boosting",
+      "star_plus": "base_logistic",
+      "starter": "segment_residual_no_shot_logistic",
+      "superstar": "base_plus_signal_full_shot_scores_hist_gradient_boosting"
+    }
   }
 }
